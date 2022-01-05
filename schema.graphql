@@ -1,0 +1,90 @@
+scalar GraphQLDate
+
+enum StatusType {
+    New
+    Assigned
+    Fixed
+    Closed
+}
+
+type Issue {
+    _id: ID!
+    id: Int!
+    status: StatusType!
+    owner: String
+    effort: Int
+    created: GraphQLDate
+    due: GraphQLDate
+    title: String!
+    description: String
+}
+
+type IssueCounts {
+  owner: String!
+  New: Int
+  Assigned: Int
+  Fixed: Int
+  Closed: Int
+}
+
+type IssueListWithPages {
+    issues: [Issue!]!
+    pages: Int
+}
+
+type User {
+    signedIn: Boolean!
+    givenName: String
+    name: String
+    email: String
+}
+
+"Introduce a Issue by the server"
+input IssueInput {
+    "Issue's status, if not is given, will be defaulted to 'New'"
+    status: StatusType = New
+    owner: String
+    effort: Int
+    due: GraphQLDate
+    title: String!
+    description: String
+}
+
+"""Inputs for issueUpdate: all are optional. Whichever is specified 
+will be set to the given value, undefined fields will remain unmodified"""
+input IssueUpdateInputs {
+    status: StatusType
+    owner: String
+    effort: Int
+    due: GraphQLDate
+    title: String
+    description: String
+}
+
+##### Top-level schemas
+
+type Query {
+    about: String!
+    issueList(
+        status: StatusType
+        effortMin: Int
+        effortMax: Int
+        search: String
+        page: Int = 1
+    ): IssueListWithPages
+    issue(id: Int!): Issue!
+    issueCounts(
+        status: StatusType
+        effortMin: Int
+        effortMax: Int
+    ): [IssueCounts!]!
+    user: User!
+}
+
+type Mutation {
+    setAboutMessage(message: String!): String
+    issueAdd(issue: IssueInput!): Issue!
+    issueUpdate(id: Int!, changes: IssueUpdateInputs!): Issue!
+    issueDelete(id: Int!): Boolean!
+    issueRestore(id: Int!): Boolean!
+}
